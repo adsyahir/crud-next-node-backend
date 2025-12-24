@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crud-backend
+  labels:
+    app: crud-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: crud-backend
+  template:
+    metadata:
+      labels:
+        app: crud-backend
+    spec:
+      containers:
+      - name: crud-backend
+        image: crud-backend:latest
+        imagePullPolicy: Never  
+        ports:
+        - containerPort: 5001
+        envFrom:
+        - secretRef:
+            name: crud-backend-secrets  # Loads all env vars
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

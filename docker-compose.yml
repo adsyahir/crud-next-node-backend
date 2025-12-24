@@ -1,27 +1,11 @@
 version: '3.8'
 
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: crud-mongodb
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - crud-network
-
   backend:
     build:
       context: .
       dockerfile: Dockerfile
+    image: crud-backend
     container_name: crud-backend
     restart: unless-stopped
     env_file:
@@ -34,14 +18,9 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    depends_on:
-      - mongodb
     networks:
       - crud-network
     command: npm run dev
-
-volumes:
-  mongodb_data:
 
 networks:
   crud-network:
