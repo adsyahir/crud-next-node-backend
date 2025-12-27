@@ -17,11 +17,6 @@ pipeline{
             }
         }
         stage("deploy"){
-            when{
-                expression{
-                    BRANCH_NAME == "main" || BRANCH_NAME == "dev"
-                }
-            }
             steps{
                 sh '''
                     if pm2 list |  grep -q "crud-backend"; then
