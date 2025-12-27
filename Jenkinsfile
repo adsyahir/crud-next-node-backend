@@ -15,7 +15,7 @@ pipeline{
                 sh 'npm run build'
             }
         }
-        stag("deploy"){
+        stage("deploy"){
             when{
                 expression{
                     BRANCH_NAME == "main" || BRANCH_NAME == "dev"
