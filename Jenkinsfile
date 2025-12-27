@@ -24,7 +24,7 @@ pipeline{
                         pm2 reload crud-backend
                     else
                         echo "App does't exist, starting new..."
-                        pm2 start npm --name "crud-backend" --start
+                        pm2 start npm --name "crud-backend" -- start
                     fi
                 '''
             }
