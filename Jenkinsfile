@@ -7,6 +7,7 @@ pipeline{
     stages{
         stage("install"){
             steps{
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/adsyahir/crud-next-node-backend.git']])
                 sh 'npm install'
             }
         }
