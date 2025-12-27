@@ -91,3 +91,19 @@ export async function getAllItem(req: Request, res: Response) : Promise<Response
         return res.status(500).json({ message });
     }
 }
+
+export async function test (req : Request, res: Response) : Promise<Response> {
+    try{
+        console.log(req.body);
+        const item = new Item({
+            name: req.body.name,
+            description: req.body.name,
+        });
+        await item.save();
+ 
+        return res.status(200).json(item);  
+    }catch(e : unknown){
+        const message = e instanceof Error ? e.message : 'An error occurred';
+        return res.status(500).json({message});
+    }
+}
