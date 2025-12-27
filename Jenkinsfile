@@ -43,35 +43,27 @@ pipeline{
         stage("deploy"){
             steps{
                 sh '''
-                    # Create deployment directory if doesn't exist
-                    sudo mkdir -p ${DEPLOY_DIR}
+                    # Create deployment directory
+                    mkdir -p ${DEPLOY_DIR}
                     
-                    # Sync files to deployment directory
-                    sudo rsync -av --delete \
+                    # Sync files (no sudo needed)
+                    rsync -av --delete \
                         --exclude 'node_modules' \
                         --exclude '.git' \
-                        --exclude '.env' \
                         ${WORKSPACE}/ ${DEPLOY_DIR}/
                     
-                    # Copy node_modules (or install fresh in deploy dir)
-                    sudo rsync -av ${WORKSPACE}/node_modules ${DEPLOY_DIR}/
+                    rsync -av ${WORKSPACE}/node_modules ${DEPLOY_DIR}/
                     
-                    # Fix ownership
-                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
-                    
-                    # Navigate to deployment directory and restart PM2
+                    # Restart PM2
                     cd ${DEPLOY_DIR}
                     
                     if pm2 list | grep -q "${APP_NAME}"; then
-                        echo "App exists, reloading..."
                         pm2 reload ${APP_NAME} --update-env
                     else
-                        echo "App doesn't exist, starting new..."
                         pm2 start npm --name ${APP_NAME} -- start
                     fi
                     
                     pm2 save
-                    pm2 list
                 '''
             }
         }
