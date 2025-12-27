@@ -2,7 +2,7 @@ pipeline{
     agent any
     
     environment {
-        APP_DIR = '/var/www/crud-node-next/crud-next-node-backend'
+        DEPLOY_DIR = '/var/www/crud-node-next/crud-next-node-backend'
         APP_NAME = 'crud-backend'
     }
     
@@ -14,51 +14,65 @@ pipeline{
     stages{
         stage("checkout"){
             steps{
-                dir("${APP_DIR}") {
-                    checkout scmGit(
-                        branches: [[name: '*/main']], 
-                        extensions: [], 
-                        userRemoteConfigs: [[
-                            credentialsId: 'github-token', 
-                            url: 'https://github.com/adsyahir/crud-next-node-backend.git'
-                        ]]
-                    )
-                }
+                // Clone to Jenkins workspace (has proper permissions)
+                checkout scmGit(
+                    branches: [[name: '*/main']], 
+                    extensions: [], 
+                    userRemoteConfigs: [[
+                        credentialsId: 'github-token', 
+                        url: 'https://github.com/adsyahir/crud-next-node-backend.git'
+                    ]]
+                )
             }
         }
         
         stage("install"){
             steps{
-                dir("${APP_DIR}") {
-                    sh 'npm install'
-                }
+                // Install in workspace
+                sh 'npm install'
             }
         }
         
         stage("build"){
             steps{
-                dir("${APP_DIR}") {
-                    sh 'npm run build'
-                }
+                // Build in workspace
+                sh 'npm run build'
             }
         }
         
         stage("deploy"){
             steps{
-                dir("${APP_DIR}") {
-                    sh '''
-                        if pm2 list | grep -q "crud-backend"; then
-                            echo "App exists, reloading..."
-                            pm2 reload crud-backend --update-env
-                        else
-                            echo "App doesn't exist, starting new..."
-                            pm2 start npm --name crud-backend -- start
-                        fi
-                        
-                        pm2 save
-                        pm2 list
-                    '''
-                }
+                sh '''
+                    # Create deployment directory if doesn't exist
+                    sudo mkdir -p ${DEPLOY_DIR}
+                    
+                    # Sync files to deployment directory
+                    sudo rsync -av --delete \
+                        --exclude 'node_modules' \
+                        --exclude '.git' \
+                        --exclude '.env' \
+                        ${WORKSPACE}/ ${DEPLOY_DIR}/
+                    
+                    # Copy node_modules (or install fresh in deploy dir)
+                    sudo rsync -av ${WORKSPACE}/node_modules ${DEPLOY_DIR}/
+                    
+                    # Fix ownership
+                    sudo chown -R jenkins:jenkins ${DEPLOY_DIR}
+                    
+                    # Navigate to deployment directory and restart PM2
+                    cd ${DEPLOY_DIR}
+                    
+                    if pm2 list | grep -q "${APP_NAME}"; then
+                        echo "App exists, reloading..."
+                        pm2 reload ${APP_NAME} --update-env
+                    else
+                        echo "App doesn't exist, starting new..."
+                        pm2 start npm --name ${APP_NAME} -- start
+                    fi
+                    
+                    pm2 save
+                    pm2 list
+                '''
             }
         }
     }
