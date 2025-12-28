@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.get('/', (req: Request, res: Response) => {
-  res.send('Hello, Express.js with TypeScript!');
+  res.send('Hello, Express.js with TypeScript! Yahooo!');
 });
 
 // Setup all routes
